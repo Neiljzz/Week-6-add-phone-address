@@ -1,30 +1,24 @@
-from flask import Flask, render_template, request, redirect, flash
-
 from app import app
+from flask import render_template, redirect, url_for, flash
+from app.form import PhoneForm
+from app.models import Address
 
 @app.route('/')
-def home():
-    return render_template('home.html')
+def index():
+    return render_template('index.html')
 
 
-@app.route('/form', methods=['GET', 'POST'])
-def form():
-    if request.method == 'Post':
-        first_name = request.form ['first_name']
-        last_name = request.form ['last_name']
-        phone_number = request.form ['phone_number']
-        address = request.form['address']
-
-        print(f"First Name: {first_name}")
-        print(f"Last Name: {last_name}")
-        print(f"Phonw Number: {phone_number} ")
-        print(f"Address: {address}")
-
-        flash("Information submitted successfully")
-
-        return redirect('/')
-    
-    return render_template("form.html", form = form)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route('/add-phone', methods=["GET", "POST"])
+def add_phone():
+    form = PhoneForm()
+    # Check if the form was submitted and is valid
+    if form.validate_on_submit():
+        first = form.first_name.data
+        last = form.last_name.data
+        address = form.address.data
+        phone = form.phone_number.data
+        print(first, last, address, phone)
+        new_contact = Address(first_name=first, last_name=last, address=address, phone_number=phone)
+        flash(f"{new_contact.first_name} {new_contact.last_name} has been added to the phone book", "success")
+        return redirect(url_for('index'))
+    return render_template('add_phone.html', form=form)
